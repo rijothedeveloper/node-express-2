@@ -42,6 +42,10 @@ router.get('/:username', authUser, requireLogin, async function(
 ) {
   try {
     let user = await User.get(req.params.username);
+    // BUG 1 do not send 404 error if user data is not valid : fixed
+    if(!user){
+      throw new ExpressError("user not found", 404)
+    }
     return res.json({ user });
   } catch (err) {
     return next(err);
@@ -62,8 +66,8 @@ router.get('/:username', authUser, requireLogin, async function(
  * other fields (including non-existent ones), an error should be raised.
  *
  */
-
-router.patch('/:username', authUser, requireLogin, requireAdmin, async function(
+// bug 2 no need to be admin to edit a user can edit his or her data
+router.patch('/:username', authUser, requireLogin, async function(
   req,
   res,
   next
@@ -76,7 +80,10 @@ router.patch('/:username', authUser, requireLogin, requireAdmin, async function(
     // get fields to change; remove token so we don't try to change it
     let fields = { ...req.body };
     delete fields._token;
-
+    // bug 3 need to pass data to edit
+    if (Object.keys(fields).length == 0) {
+      throw new ExpressError("no data to update", 404)
+    }
     let user = await User.update(req.params.username, fields);
     return res.json({ user });
   } catch (err) {

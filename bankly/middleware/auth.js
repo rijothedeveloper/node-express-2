@@ -44,13 +44,14 @@ function requireAdmin(req, res, next) {
  *
  **/
 
+// admin is set for all users
 function authUser(req, res, next) {
   try {
     const token = req.body._token || req.query._token;
     if (token) {
       let payload = jwt.decode(token);
       req.curr_username = payload.username;
-      req.curr_admin = payload.admin;
+      // req.curr_admin = payload.admin;
     }
     return next();
   } catch (err) {
